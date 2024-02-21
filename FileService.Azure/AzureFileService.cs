@@ -122,20 +122,36 @@ namespace FileService.Azure
                 bool blobExists = await DoesBlobExistAsync(azureBlobFile.ContainerName, azureBlobFile.KeyName);
                 if (!blobExists)
                 {
-                    throw new InvalidOperationException($" The specified blob does not exist Else Blob '{azureBlobFile.KeyName}' does not exist in container '{azureBlobFile.ContainerName}'");
+                    throw new InvalidOperationException($"The specified blob does not exist Else Blob '{azureBlobFile.KeyName}' does not exist in container '{azureBlobFile.ContainerName}'");
                 }
 
                 var blobContainerClient = _blobServiceClient.GetBlobContainerClient(azureBlobFile.ContainerName);
                 var blobClient = blobContainerClient.GetBlobClient(azureBlobFile.KeyName);
 
+                // Generate the signed URL with the specified expiration time
+                var sasBuilder = new BlobSasBuilder
+                {
+                    BlobContainerName = azureBlobFile.ContainerName,
+                    BlobName = azureBlobFile.KeyName,
+                    Resource = "b",
+                    StartsOn = DateTimeOffset.UtcNow,
+                    ExpiresOn = DateTimeOffset.UtcNow.Add(expiration), // Use TimeSpan here
+                };
 
-                return blobClient.Uri.ToString();
+                // Set other permissions as needed (e.g., Read, Write, Delete)
+                sasBuilder.SetPermissions(BlobSasPermissions.Read);
+
+                // Get the SAS token
+                var sasToken = blobClient.GenerateSasUri(sasBuilder);
+
+                return sasToken.ToString();
             }
             catch (RequestFailedException ex)
             {
                 throw new Exception($"Error getting signed URL for Azure Blob Storage: {ex.Message}");
             }
         }
+
 
 
     }
