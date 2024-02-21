@@ -1,4 +1,5 @@
 using FileService.AWS;
+using FileService.Azure;
 using Microsoft.Extensions.Configuration;
 
 namespace FileService.Test
@@ -11,16 +12,33 @@ namespace FileService.Test
 
             var Configuration = builder.Configuration;
 
+            // Retrieve the value of "File Service Type" from configuration
+            string emailServiceType = Configuration["FileServiceType"];
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
-            builder.Services.AddAWSFileService(options =>
+            // Use the value of emailServiceType to configure services accordingly
+            if (emailServiceType == "Azure")
             {
-                options.AccessKey = Configuration.GetSection("AWS:AccessKeyId").Value;
-                options.SecretKey = Configuration.GetSection("AWS:SecretAccessKey").Value;
-                options.Region = Configuration.GetSection("AWS:Region").Value;
-            });
-
+                // Register BlobServiceClient
+                builder.Services.AddAzureFileService(options =>
+                {
+                    options.ConnectionString = Configuration.GetSection("Azure:ConnectionString").Value;
+                });
+            }
+            else if (emailServiceType == "AWS")
+            {
+                builder.Services.AddAWSFileService(options =>
+                {
+                    options.AccessKey = Configuration.GetSection("AWS:AccessKeyId").Value;
+                    options.SecretKey = Configuration.GetSection("AWS:SecretAccessKey").Value;
+                    options.Region = Configuration.GetSection("AWS:Region").Value;
+                });
+            }
+            else
+            {
+                throw new InvalidOperationException("Invalid file service type specified in configuration.");
+            }
 
             var app = builder.Build();
 

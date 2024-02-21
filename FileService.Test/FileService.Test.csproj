@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FileService.AWS\FileService.AWS.csproj" />
+    <ProjectReference Include="..\FileService.Azure\FileService.Azure.csproj" />
     <ProjectReference Include="..\FileStorageService\FileService.csproj" />
   </ItemGroup>
 

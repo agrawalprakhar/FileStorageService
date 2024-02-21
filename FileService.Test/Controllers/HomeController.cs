@@ -16,25 +16,40 @@ namespace FileService.Test.Controllers
             _logger = logger;
             _fileService = fileService;
 
-            var fileModel = new S3FileModel
-            {
-                BucketName = "Your_Bucket_Name",
-                KeyName = "FileName",
-                FilePath = "path to file.txt"
-            };
+            // Use the File Model According To your Service
 
-            // Call the FileService method to Get  the  content of file
-            _fileService.GetFileAsStringAsync(fileModel).GetAwaiter().GetResult();
+            //var fileModel = new S3FileModel
+            //{
+            //    BucketName = "Your_Bucket_Name",
+            //    KeyName = "FileName",
+            //    FilePath = "path/to/file.txt"
+            //};
 
-            // Call the FileService method to upload the file
-            _fileService.UploadFileAsync(fileModel).GetAwaiter().GetResult();
+            //var fileModel = new AzureBlobFileModel
+            //{
+            //    ContainerName = "my_container",
+            //    KeyName = "FileName",
+            //    FilePath = "path/to/file.txt"
+            //};
 
-            // Call the FileService method to delete the file
-            _fileService.DeleteFileAsync(fileModel).GetAwaiter().GetResult();
+            //// Call the FileService method to Get  the  content of file
+            //_fileService.GetFileAsStringAsync(fileModel).GetAwaiter().GetResult();
 
-            // Call the FileService method  with expiration time to Get  the  url of file
-            TimeSpan expiration = TimeSpan.FromHours(1);
-            _fileService.GetSignedUrlAsync(fileModel,expiration).GetAwaiter().GetResult();
+            //// Call the FileService method to upload the file
+            //_fileService.UploadFileAsync(fileModel).GetAwaiter().GetResult();
+
+            //// Call the FileService method to delete the file
+            //_fileService.DeleteFileAsync(fileModel).GetAwaiter().GetResult();
+
+            // In the Case of Azure You get the Link by downside method but you did not have 
+            // permission to Acess So for Acess You Go Azure Portal >> Your storage  >> Settings
+            // >> Configuration >> Allow Blob anonymous access >> Enabled
+
+            // Then After >> Your Container >>  Change Access Level >> Blob (Read Only)
+
+            //// Call the FileService method  with expiration time to Get  the  url of file
+            //TimeSpan expiration = TimeSpan.FromHours(1);
+            //_fileService.GetSignedUrlAsync(fileModel,expiration).GetAwaiter().GetResult();
 
         }
 
