@@ -6,11 +6,20 @@ using System.Threading.Tasks;
 
 namespace FileService
 {
-    public class FileModel
+    public abstract class FileModelBase
     {
         public string FilePath { get; set; }
         public string KeyName { get; set; }
-        public string BucketName { get; set; }
-
     }
+
+    public class S3FileModel : FileModelBase
+    {
+        public string BucketName { get; set; }
+    }
+
+    public class AzureBlobFileModel : FileModelBase
+    {
+        public string ContainerName { get; set; }
+    }
+
 }

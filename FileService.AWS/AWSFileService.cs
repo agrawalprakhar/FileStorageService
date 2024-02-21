@@ -12,6 +12,7 @@ namespace FileService.AWS
 {
     public class AWSFileService : IFileService
     {
+
         private readonly IAmazonS3 _s3Client;
 
         public AWSFileService(IAmazonS3 s3Client)
@@ -19,15 +20,20 @@ namespace FileService.AWS
             _s3Client = s3Client ?? throw new ArgumentNullException(nameof(s3Client));
         }
 
-        public async Task UploadFileAsync(FileModel file)
+        public async Task UploadFileAsync(FileModelBase file)
         {
             if (file == null)
                 throw new ArgumentNullException(nameof(file));
 
+
+
+            if (!(file is S3FileModel s3File))
+                throw new ArgumentException("File model is not of type S3FileModel");
+
             try
             {
                 var fileTransferUtility = new TransferUtility(_s3Client);
-                await fileTransferUtility.UploadAsync(file.FilePath, file.BucketName, file.KeyName);
+                await fileTransferUtility.UploadAsync(s3File.FilePath, s3File.BucketName, s3File.KeyName);
             }
             catch (AmazonS3Exception ex)
             {
@@ -42,17 +48,21 @@ namespace FileService.AWS
         /// <returns>True if the file exists in the bucket; otherwise, false.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="file"/> is null.</exception>
         /// <exception cref="AmazonS3Exception">Thrown when an error occurs while communicating with Amazon S3.</exception>
-        public async Task<bool> DoesFileExistAsync(FileModel file)
+        public async Task<bool> DoesFileExistAsync(FileModelBase file)
         {
             if (file == null)
                 throw new ArgumentNullException(nameof(file));
 
+            if (!(file is S3FileModel s3File))
+                throw new ArgumentException("File model is not of type S3FileModel");
+
             try
             {
+
                 var request = new GetObjectMetadataRequest
                 {
-                    BucketName = file.BucketName,
-                    Key = file.KeyName
+                    BucketName = s3File.BucketName,
+                    Key = s3File.KeyName
                 };
 
                 await _s3Client.GetObjectMetadataAsync(request);
@@ -68,20 +78,20 @@ namespace FileService.AWS
             }
         }
 
-
-        public async Task<string> GetFileAsStringAsync(FileModel file)
+        public async Task<string> GetFileAsStringAsync(FileModelBase file)
         {
             if (file == null)
                 throw new ArgumentNullException(nameof(file));
 
+            if (!(file is S3FileModel s3File))
+                throw new ArgumentException("File model is not of type S3FileModel");
+
             try
             {
-
-
                 var request = new GetObjectRequest
                 {
-                    BucketName = file.BucketName,
-                    Key = file.KeyName
+                    BucketName = s3File.BucketName,
+                    Key = s3File.KeyName
                 };
 
                 using (var response = await _s3Client.GetObjectAsync(request))
@@ -93,8 +103,6 @@ namespace FileService.AWS
 
                     string fileContent = Encoding.UTF8.GetString(bytes);
 
-                    Console.WriteLine(fileContent);
-
                     return fileContent;
                 }
             }
@@ -103,29 +111,32 @@ namespace FileService.AWS
                 throw;
             }
         }
-        public async Task<string> GetSignedUrlAsync(FileModel file, TimeSpan expiration)
+        public async Task<string> GetSignedUrlAsync(FileModelBase file, TimeSpan expiration)
         {
             if (file == null)
                 throw new ArgumentNullException(nameof(file));
 
+            if (!(file is S3FileModel s3File))
+                throw new ArgumentException("File model is not of type S3FileModel");
+
             try
             {
                 // Check if the file exists in the S3 bucket
-                bool fileExists = await DoesFileExistAsync(file);
+                bool fileExists = await DoesFileExistAsync(s3File);
                 if (!fileExists)
                 {
-                    throw new InvalidOperationException($"File '{file.KeyName}' does not exist in the bucket '{file.BucketName}' or the bucket does not exist.");
+                    throw new InvalidOperationException($"File '{s3File.KeyName}' does not exist in the bucket '{s3File.BucketName}' Else the bucket does not exist.");
                 }
 
                 var request = new GetPreSignedUrlRequest
                 {
-                    BucketName = file.BucketName,
-                    Key = file.KeyName,
+                    BucketName = s3File.BucketName,
+                    Key = s3File.KeyName,
                     Expires = DateTime.UtcNow.Add(expiration)
                 };
 
                 string url = _s3Client.GetPreSignedURL(request);
-                Console.WriteLine(url);
+
                 return url;
             }
             catch (AmazonS3Exception ex)
@@ -134,25 +145,27 @@ namespace FileService.AWS
             }
         }
 
-
-        public async Task DeleteFileAsync(FileModel file)
+        public async Task DeleteFileAsync(FileModelBase file)
         {
             if (file == null)
                 throw new ArgumentNullException(nameof(file));
 
+            if (!(file is S3FileModel s3File))
+                throw new ArgumentException("File model is not of type S3FileModel");
+
             try
             {
                 // Check if the file exists in the S3 bucket
-                bool fileExists = await DoesFileExistAsync(file);
+                bool fileExists = await DoesFileExistAsync(s3File);
                 if (!fileExists)
                 {
-                    throw new InvalidOperationException($"File '{file.KeyName}' does not exist in the bucket '{file.BucketName}' or the bucket does not exist.");
+                    throw new InvalidOperationException($"File '{s3File.KeyName}' does not exist in the bucket '{s3File.BucketName}' or the bucket does not exist.");
                 }
 
                 var request = new DeleteObjectRequest
                 {
-                    BucketName = file.BucketName,
-                    Key = file.KeyName
+                    BucketName = s3File.BucketName,
+                    Key = s3File.KeyName
                 };
 
                 await _s3Client.DeleteObjectAsync(request);

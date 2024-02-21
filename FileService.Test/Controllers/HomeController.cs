@@ -2,6 +2,7 @@
 using FileService.Test.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.IO;
 
 namespace FileService.Test.Controllers
 {
@@ -15,7 +16,7 @@ namespace FileService.Test.Controllers
             _logger = logger;
             _fileService = fileService;
 
-            var fileModel = new FileModel
+            var fileModel = new S3FileModel
             {
                 BucketName = "Your_Bucket_Name",
                 KeyName = "FileName",

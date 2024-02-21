@@ -2,8 +2,16 @@
 
 	<PropertyGroup>
 		<TargetFramework>net7.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		<PackageId>Promact.FileService.AWS</PackageId>
+		<Authors>Rushi Soni</Authors>
+		<Product>Promact.FileService.AWS</Product>
+		<Company>Promact Infotech Private Limited</Company>
+		<Description>File Storage service implementation for storage File related operation via AWS S3</Description>
+		<RepositoryUrl>https://github.com/agrawalprakhar/FileStorageService</RepositoryUrl>
+		<TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
+		<IsPackable>true</IsPackable>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -13,7 +21,16 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\FileStorageService\FileService.csproj" />
+		<ProjectReference Include="..\FileStorageService\FileService.csproj">
+			<ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+			<IncludeAssets>FileService.dll</IncludeAssets>
+		</ProjectReference>
 	</ItemGroup>
+
+	<Target DependsOnTargets="ResolveReferences" Name="CopyProjectReferencesToPackage">
+		<ItemGroup>
+			<BuildOutputInPackage Include="@(ReferenceCopyLocalPaths->WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))"/>
+		</ItemGroup>
+	</Target>
 
 </Project>
