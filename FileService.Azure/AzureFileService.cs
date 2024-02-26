@@ -3,6 +3,7 @@ using Azure.Core;
 using Azure.Identity;
 using Azure.Storage;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
 using System;
 using System.Collections.Generic;
@@ -152,6 +153,59 @@ namespace FileService.Azure
             }
         }
 
+        public async Task<List<string>> GetKeysAsync(FileModelBase file, int pageNumber, int pageSize)
+        {
+            if (file == null)
+                throw new ArgumentNullException(nameof(file));
+
+            if (!(file is AzureBlobFileModel blobFile))
+                throw new ArgumentException("File model is not of type AzureBlobFileModel");
+
+            if (pageNumber <= 0 || pageSize <= 0)
+                throw new ArgumentException("Page number and page size must be greater than zero");
+
+            var keys = new List<string>();
+
+            try
+            {
+                var containerClient = _blobServiceClient.GetBlobContainerClient(blobFile.ContainerName);
+
+                // Calculate the index of the first key to fetch for the specified page
+                int startIndex = (pageNumber - 1) * pageSize;
+
+                int keysCount = 0;
+
+                await foreach (Page<BlobItem> page in containerClient.GetBlobsAsync().AsPages())
+                {
+                    foreach (BlobItem blobItem in page.Values)
+                    {
+                        // Increment the count of keys fetched
+                        keysCount++;
+
+                        // Skip keys until the start index is reached
+                        if (keysCount <= startIndex)
+                            continue;
+
+                        // Add the key to the list
+                        keys.Add(blobItem.Name);
+
+                        // Break the loop if the page size limit is reached
+                        if (keys.Count >= pageSize)
+                            break;
+                    }
+
+                    // Break the loop if the page size limit is reached
+                    if (keys.Count >= pageSize)
+                        break;
+                }
+
+                return keys;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("An error occurred while retrieving keys from Azure Blob Storage.", ex);
+            }
+        }
 
 
     }

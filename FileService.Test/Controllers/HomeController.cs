@@ -51,6 +51,16 @@ namespace FileService.Test.Controllers
             //TimeSpan expiration = TimeSpan.FromHours(1);
             //_fileService.GetSignedUrlAsync(fileModel,expiration).GetAwaiter().GetResult();
 
+
+            //Describe the pageno and pagesize for retriving keys in particular page
+            //var pageNumber = 1; 
+            //var pageSize = 1;  
+            //var keys = _fileService.GetKeysAsync(fileModel, pageNumber, pageSize).GetAwaiter().GetResult();
+
+            //foreach (var key in keys)
+            //{
+            //    Console.WriteLine(key);
+            //}
         }
 
         public IActionResult Index()

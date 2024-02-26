@@ -176,5 +176,65 @@ namespace FileService.AWS
             }
         }
 
+        public async Task<List<string>> GetKeysAsync(FileModelBase file, int pageNumber, int pageSize)
+        {
+            if (file == null)
+                throw new ArgumentNullException(nameof(file));
+
+            if (!(file is S3FileModel s3File))
+                throw new ArgumentException("File model is not of type S3FileModel");
+
+            if (pageNumber <= 0 || pageSize <= 0)
+                throw new ArgumentException("Page number and page size must be greater than zero");
+
+            var keys = new List<string>();
+
+            try
+            {
+                string continuationToken = null;
+                int itemsProcessed = 0;
+                int itemsToSkip = (pageNumber - 1) * pageSize;
+
+                do
+                {
+                    var request = new ListObjectsV2Request
+                    {
+                        BucketName = s3File.BucketName,
+                        MaxKeys = pageSize,
+                        ContinuationToken = continuationToken
+                    };
+
+                    var response = await _s3Client.ListObjectsV2Async(request);
+
+                    foreach (var obj in response.S3Objects)
+                    {
+
+                        if (itemsProcessed >= itemsToSkip)
+                        {
+                            keys.Add(obj.Key);
+
+                            if (keys.Count >= pageSize)
+                                break;
+                        }
+
+                        itemsProcessed++;
+                    }                 
+                    continuationToken = response.NextContinuationToken;
+
+                } while (!string.IsNullOrEmpty(continuationToken) && keys.Count < pageSize);
+
+                return keys;
+            }
+            catch (AmazonS3Exception ex)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("An error occurred while retrieving keys from the S3 bucket.", ex);
+            }
+        }
+
+
     }
 }

@@ -36,5 +36,7 @@ namespace FileService
         /// <param name="expiration">The expiration time for the pre-signed URL.</param>
         /// <returns>A task representing the asynchronous operation. The task result contains the pre-signed URL.</returns>
         Task<string> GetSignedUrlAsync(FileModelBase file, TimeSpan expiration);
+
+        Task<List<string>> GetKeysAsync(FileModelBase file, int pageNumber, int pageSize);
     }
 }
