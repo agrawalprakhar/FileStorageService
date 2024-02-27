@@ -153,25 +153,24 @@ namespace FileService.Azure
             }
         }
 
-        public async Task<List<string>> GetKeysAsync(FileModelBase file, int pageNumber, int pageSize)
+        public async Task<List<string>> GetKeysAsync(GetAllKeysRequest request)
         {
-            if (file == null)
-                throw new ArgumentNullException(nameof(file));
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
 
-            if (!(file is AzureBlobFileModel blobFile))
-                throw new ArgumentException("File model is not of type AzureBlobFileModel");
+            if (request.BucketOrContainer == null)
+                throw new ArgumentNullException(nameof(request.BucketOrContainer));
 
-            if (pageNumber <= 0 || pageSize <= 0)
+            if (request.PageNumber <= 0 || request.PageSize <= 0)
                 throw new ArgumentException("Page number and page size must be greater than zero");
 
             var keys = new List<string>();
 
             try
             {
-                var containerClient = _blobServiceClient.GetBlobContainerClient(blobFile.ContainerName);
+                var containerClient = _blobServiceClient.GetBlobContainerClient(request.BucketOrContainer);
 
-                // Calculate the index of the first key to fetch for the specified page
-                int startIndex = (pageNumber - 1) * pageSize;
+                int startIndex = (request.PageNumber - 1) * request.PageSize;
 
                 int keysCount = 0;
 
@@ -179,23 +178,19 @@ namespace FileService.Azure
                 {
                     foreach (BlobItem blobItem in page.Values)
                     {
-                        // Increment the count of keys fetched
                         keysCount++;
 
-                        // Skip keys until the start index is reached
                         if (keysCount <= startIndex)
                             continue;
 
-                        // Add the key to the list
                         keys.Add(blobItem.Name);
 
-                        // Break the loop if the page size limit is reached
-                        if (keys.Count >= pageSize)
+
+                        if (keys.Count >= request.PageSize)
                             break;
                     }
 
-                    // Break the loop if the page size limit is reached
-                    if (keys.Count >= pageSize)
+                    if (keys.Count >= request.PageSize)
                         break;
                 }
 

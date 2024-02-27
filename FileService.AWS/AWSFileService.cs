@@ -176,15 +176,16 @@ namespace FileService.AWS
             }
         }
 
-        public async Task<List<string>> GetKeysAsync(FileModelBase file, int pageNumber, int pageSize)
+        public async Task<List<string>> GetKeysAsync(GetAllKeysRequest request)
         {
-            if (file == null)
-                throw new ArgumentNullException(nameof(file));
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
 
-            if (!(file is S3FileModel s3File))
-                throw new ArgumentException("File model is not of type S3FileModel");
+            if (request.BucketOrContainer == null)
+                throw new ArgumentNullException(nameof(request.BucketOrContainer));
 
-            if (pageNumber <= 0 || pageSize <= 0)
+
+            if (request.PageNumber <= 0 || request.PageSize <= 0)
                 throw new ArgumentException("Page number and page size must be greater than zero");
 
             var keys = new List<string>();
@@ -193,18 +194,19 @@ namespace FileService.AWS
             {
                 string continuationToken = null;
                 int itemsProcessed = 0;
-                int itemsToSkip = (pageNumber - 1) * pageSize;
+                int itemsToSkip = (request.PageNumber - 1) * request.PageSize;
 
                 do
                 {
-                    var request = new ListObjectsV2Request
+
+                    var listObjectsRequest = new ListObjectsV2Request
                     {
-                        BucketName = s3File.BucketName,
-                        MaxKeys = pageSize,
+                        BucketName = request.BucketOrContainer,
+                        MaxKeys = request.PageSize,
                         ContinuationToken = continuationToken
                     };
 
-                    var response = await _s3Client.ListObjectsV2Async(request);
+                    var response = await _s3Client.ListObjectsV2Async(listObjectsRequest);
 
                     foreach (var obj in response.S3Objects)
                     {
@@ -213,15 +215,15 @@ namespace FileService.AWS
                         {
                             keys.Add(obj.Key);
 
-                            if (keys.Count >= pageSize)
+                            if (keys.Count >= request.PageSize)
                                 break;
                         }
 
                         itemsProcessed++;
-                    }                 
+                    }
                     continuationToken = response.NextContinuationToken;
 
-                } while (!string.IsNullOrEmpty(continuationToken) && keys.Count < pageSize);
+                } while (!string.IsNullOrEmpty(continuationToken) && keys.Count < request.PageSize);
 
                 return keys;
             }
@@ -234,7 +236,6 @@ namespace FileService.AWS
                 throw new Exception("An error occurred while retrieving keys from the S3 bucket.", ex);
             }
         }
-
 
     }
 }

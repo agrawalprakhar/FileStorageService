@@ -37,6 +37,11 @@ namespace FileService
         /// <returns>A task representing the asynchronous operation. The task result contains the pre-signed URL.</returns>
         Task<string> GetSignedUrlAsync(FileModelBase file, TimeSpan expiration);
 
-        Task<List<string>> GetKeysAsync(FileModelBase file, int pageNumber, int pageSize);
+        /// <summary>
+        /// Retrieves a list of keys asynchronously based on the provided request.
+        /// </summary>
+        /// <param name="request">The request object containing parameters for retrieving keys.</param>
+        /// <returns>A task representing the asynchronous operation. The task result contains a list of keys.</returns>
+        Task<List<string>> GetKeysAsync(GetAllKeysRequest request);
     }
 }

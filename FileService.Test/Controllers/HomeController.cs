@@ -53,9 +53,14 @@ namespace FileService.Test.Controllers
 
 
             //Describe the pageno and pagesize for retriving keys in particular page
-            //var pageNumber = 1; 
-            //var pageSize = 1;  
-            //var keys = _fileService.GetKeysAsync(fileModel, pageNumber, pageSize).GetAwaiter().GetResult();
+            //var request = new GetAllKeysRequest
+            //{
+            //    BucketOrContainer = "mycontainer",
+            //    PageNumber = 5,
+            //    PageSize = 3,
+            //};
+
+            //var keys = _fileService.GetKeysAsync(request).GetAwaiter().GetResult();
 
             //foreach (var key in keys)
             //{
